@@ -6,18 +6,17 @@ import it.skrape.fetcher.Method
 import it.skrape.fetcher.response
 import it.skrape.fetcher.skrape
 import it.skrape.selects.Doc
-import it.skrape.selects.html5.*
+import it.skrape.selects.html5.article
+import it.skrape.selects.html5.code
+import it.skrape.selects.html5.p
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlinx.jupyter.api.HTML
 import org.jetbrains.kotlinx.jupyter.api.MimeTypedResult
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
-import java.time.Duration
-import java.time.LocalDateTime
-import java.time.Month
-import java.time.ZoneId
-import java.time.ZonedDateTime
+import java.nio.file.Path
+import java.time.*
 
 enum class SubmissionOutcome {
     CORRECT,
@@ -188,8 +187,8 @@ class AocClient(private val sessionToken: String) {
 
     suspend fun partOneHTML(day: AocDay): String = fetchAocPageDay(day).partOne.html
 
-    suspend fun partTwoHTML(day: AocDay): String = fetchAocPageDay(day).partTwo?.html ?:
-    throw Exception("Part two is not unlocked yet!")
+    suspend fun partTwoHTML(day: AocDay): String =
+        fetchAocPageDay(day).partTwo?.html ?: throw Exception("Part two is not unlocked yet!")
 
 
     suspend fun submit(part: Int, day: AocDay, answer: String): Pair<SubmissionOutcome, String> {
@@ -234,10 +233,11 @@ class AocClient(private val sessionToken: String) {
     fun interactiveDay(year: Int, day: Int) = InteractiveAocDay(this, AocDay(year, day))
 
     companion object {
-        fun fromFile(): AocClient {
-            val exception = "Advent of Code token is missing. Create a '.session' in the same folder as your notebook file and paste your Advent of Code token inside"
+        fun fromFile(path: String): AocClient {
+            val exception =
+                "Advent of Code token is missing. Create a '.session' in the same folder as your notebook file and paste your Advent of Code token inside"
 
-            val token = File(".session")
+            val token = File(path)
                 .also { require(it.isFile) { exception } }
                 .readText()
                 .also { require(it.isNotBlank()) { exception } }
@@ -246,7 +246,8 @@ class AocClient(private val sessionToken: String) {
         }
 
         fun fromEnv(): AocClient {
-            val token = System.getenv("AOC_TOKEN") ?: throw Exception("No Advent of Code session token specified! Please specify the 'AOC_TOKEN' environment variable")
+            val token = System.getenv("AOC_TOKEN")
+                ?: throw Exception("No Advent of Code session token specified! Please specify the 'AOC_TOKEN' environment variable")
 
             return AocClient(token)
         }
@@ -274,7 +275,7 @@ class InteractiveAocDay(
         runBlocking {
             client.fetchInput(day).trim()
         }
-    }
+    }.split("\n")
 
     fun viewPartOne() = cacheFile(
         File(cachePath, "part_one.html")
@@ -304,12 +305,14 @@ class InteractiveAocDay(
             ?.value ?: throw Exception("Solution is not unlocked yet")
     }
 
-    private fun formatSubmissionResult(answer: String, resultBody: String) = HTML("""
+    private fun formatSubmissionResult(answer: String, resultBody: String) = HTML(
+        """
         <div>
             <p>Your answer: $answer.</p>
             $resultBody
         </div>
-    """.trimIndent())
+    """.trimIndent()
+    )
 
     private suspend fun submit(part: Int, answer: String): MimeTypedResult {
 

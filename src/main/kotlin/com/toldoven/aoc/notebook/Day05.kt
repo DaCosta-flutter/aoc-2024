@@ -4,85 +4,55 @@ import utils.println
 import utils.sessionTokenPath
 
 typealias Rules = Map<Int, Set<Int>>
+typealias Message = List<Int>
 
 fun main() {
 
-    data class Message(
-        val numbers: List<Int>,
-        val indexByNumber: Map<Int, List<Int>>,
-    )
-
-
     data class Input(
-        val valuesAfterXRules: Rules,
+        val precedenceRules: Rules,
         val messages: List<Message>,
     )
 
-    fun Message.isValid(rules: Rules): Boolean {
-        return this.numbers
-            .mapIndexed { i, v -> Pair(i, v) }
-            .all { (idx, num) ->
-                rules[num].orEmpty()
-                    .map { numShouldBeAfter -> indexByNumber[numShouldBeAfter].orEmpty() }
-                    .all { indicesShouldBeAfter -> indicesShouldBeAfter.all { it > idx } }
-            }
-    }
-
     fun Message.sort(rules: Rules): List<Int> {
-        return this.numbers.sortedWith() { o1, o2 ->
-            val o1rules = rules[o1].orEmpty()
-            val o2Rules = rules[o2].orEmpty()
+        return this.sortedWith() { o1, o2 ->
+            val numbersMustBeAfter1 = rules[o1].orEmpty()
+            val numbersMustBeAfter2 = rules[o2].orEmpty()
 
-            if (o2 in o1rules) {
+            if (o2 in numbersMustBeAfter1) {
                 -1
-            } else if (o1 in o2Rules) {
+            } else if (o1 in numbersMustBeAfter2) {
                 +1
             } else 0
         }
     }
 
     fun parse(strings: List<String>): Input {
-        var reachedEndRules = false
-        var curIdx = 0
-        val valuesAfterXRules: HashMap<Int, MutableSet<Int>> = HashMap()
-        while (!reachedEndRules) {
-            var str = strings[curIdx]
-            val rules = str.split("|").map { it.toInt() }
-            valuesAfterXRules.computeIfAbsent(rules[0]) { mutableSetOf() }.add(rules[1])
-            reachedEndRules = strings[++curIdx].isBlank()
-        }
+        val rules = strings.takeWhile { it.isNotBlank() }
+            .map { str -> str.split("|").map(String::toInt) }
+            .groupBy({ it[0] }, { it[1] })
+            .mapValues { it.value.toSet() }
 
-        val messages = strings.subList(curIdx + 1, strings.size)
-            .map { str ->
-                val list = str.trim().split(",")
-                    .map { it.toInt() }
-                val mapped = list.mapIndexed { i, v -> Pair(i, v) }
-                    .groupBy { it.second }
-                    .mapValues { listPairs -> listPairs.value.map { it.first } }
-                Message(list, mapped)
-            }
-        return Input(valuesAfterXRules, messages)
+        val messages = strings
+            .reversed()
+            .takeWhile { it.isNotBlank() }
+            .map { str -> str.trim().split(",").map { it.toInt() } }
+        return Input(rules, messages)
     }
 
     fun part1(input: List<String>): Long {
         val inp = parse(input)
 
-        return inp.messages.filter { it.isValid(inp.valuesAfterXRules) }
-            .map { it.numbers[it.numbers.lastIndex / 2].toLong() }
-            .sum()
+        return inp.messages.filter { it.sort(inp.precedenceRules) == it }
+            .sumOf { it[it.lastIndex / 2].toLong() }
     }
 
     fun part2(input: List<String>): Long {
         val inp = parse(input)
 
-        return inp.messages.filterNot { it.isValid(inp.valuesAfterXRules) }
-            .map { it.sort(inp.valuesAfterXRules) }
-            .also { it.println() }
-            .map { it[it.lastIndex / 2].toLong() }
-            .also { it.println() }
-            .sum()
+        return inp.messages
+            .mapNotNull { msg -> msg.sort(inp.precedenceRules).run { if (this != msg) this else null } }
+            .sumOf { it[it.lastIndex / 2].toLong() }
     }
-
 
     // test if implementation meets criteria from the description, like:
     // Check test inputs

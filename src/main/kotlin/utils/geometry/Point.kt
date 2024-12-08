@@ -66,10 +66,25 @@ fun Point.moveTo(d: Direction, num: Int = 1) = when (d) {
     Direction.UP_RIGHT -> copy(x = x + num, y = y - num)
 }
 
-fun Point.lineTo(num: Int, d: Direction): List<Point> = buildList {
-    var currentPos = this@lineTo
+fun Point.pointsTo(num: Int, d: Direction): List<Point> = buildList {
+    var currentPos = this@pointsTo
     repeat(num) {
         currentPos = currentPos.moveTo(d)
         add(currentPos)
     }
+}
+
+data class Line(
+    val m: Double,
+    val b: Double
+)
+
+fun Line.yAt(x: Int) = m * x + b
+
+fun Line.isIn(p: Point) = abs(this.yAt(p.x) - p.y) < 0.0000001
+
+fun Point.lineTo(o: Point): Line {
+    val m = (o.y - this.y) / (o.x - this.x).toDouble()
+    val b = this.y - m * this.x
+    return Line(m, b)
 }

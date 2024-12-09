@@ -3,8 +3,6 @@ package com.toldoven.aoc.notebook
 import utils.geometry.*
 import utils.println
 import utils.sessionTokenPath
-import kotlin.math.abs
-import kotlin.math.roundToInt
 import kotlin.time.measureTime
 
 fun main() {
@@ -24,19 +22,13 @@ fun main() {
             .filter { it.value != '.' }
             .groupBy({ it.value }, { it.key })
 
-        val antennaSets = antennasByFrequency.flatMap { it.value.pairwiseCombinations() }.toSet()
+        val antennaPairs = antennasByFrequency.flatMap { it.value.pairwiseCombinations() }.toSet()
 
-        val antinodes = antennaSets.mapNotNull { (p1, p2) ->
-            val line = p1.lineTo(p2)
-            (input.indices)
-                .asSequence()
-                .map { it to line.yAt(it) }
-                .filter { (_, y) -> abs(y.roundToInt() - y) < 0.00000001 }
-                .map { Point(it.first, it.second.roundToInt()) }
-                .firstOrNull { it in grid && it.manhattanDistance(p1) == 2 * it.manhattanDistance(p2) }
-        }.toSet()
-
-        return antinodes.size.toLong()
+        return antennaPairs
+            .map { (a1, a2) -> a1 + (-a1.vecTo(a2)) }
+            .filter { it in grid }
+            .toSet()
+            .size.toLong()
     }
 
     fun part2(input: List<String>): Long {
@@ -45,19 +37,15 @@ fun main() {
             .filter { it.value != '.' }
             .groupBy({ it.value }, { it.key })
 
-        val antennaSets = antennasByFrequency.flatMap { it.value.pairwiseCombinations() }.toSet()
+        val antennaPairs = antennasByFrequency.flatMap { it.value.pairwiseCombinations() }.toSet()
 
-        val antinodes = antennaSets.flatMap { (p1, p2) ->
-            val line = p1.lineTo(p2)
-            (input.indices)
-                .asSequence()
-                .map { it to line.yAt(it) }
-                .filter { (_, y) -> abs(y.roundToInt() - y) < 0.00000001 }
-                .map { Point(it.first, it.second.roundToInt()) }
-                .filter { it in grid }
-        }.toSet()
-
-        return antinodes.size.toLong()
+        return antennaPairs
+            .flatMap { (a1, a2) ->
+                var curIdx = 0
+                generateSequence { a1 + a1.vecTo(a2) * curIdx-- }.takeWhile { it in grid }
+            }
+            .toSet()
+            .size.toLong()
     }
 
     // test if implementation meets criteria from the description, like:

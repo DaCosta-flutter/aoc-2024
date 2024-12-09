@@ -21,7 +21,11 @@ operator fun Point.rem(sizeToCorrect: Point): Point {
     return this.copy(x = newX, y = newY)
 }
 
-fun Point.add(p: Point) = Point(this.x + p.x, this.y + p.y)
+fun Point.vecTo(o: Point) = Point(o.x - this.x, o.y - this.y)
+
+operator fun Point.plus(o: Point) = copy(x = this.x + o.x, y = this.y + o.y)
+operator fun Point.times(o: Int) = copy(x = this.x * o, y = this.y * o)
+operator fun Point.unaryMinus() = this * -1
 
 operator fun List<List<Char>>.get(pos: Point) = this[pos.y][pos.x]
 fun List<String>.atPos(pos: Point) = this[pos.y][pos.x]

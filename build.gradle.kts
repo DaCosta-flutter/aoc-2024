@@ -17,6 +17,7 @@ kotlinJupyter {
 dependencies {
     implementation("it.skrape:skrapeit:1.2.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+    implementation("org.apache.commons:commons-math3:3.6.1")
     testImplementation(kotlin("test"))
 }
 

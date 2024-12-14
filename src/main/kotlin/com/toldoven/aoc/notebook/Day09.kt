@@ -9,16 +9,15 @@ fun main() {
 
     val aoc = AocClient.fromFile(sessionTokenPath).interactiveDay(2024, 9)
 
-
     data class File(
         val id: Int,
         val numBlocks: Int,
-        var startIdx: Int,
-        var freeBlocks: Int
+        val startIdx: Int,
+        val freeBlocks: Int
     )
 
     data class Disk(
-        val files: SortedMap<Int, File>,
+        val files: TreeSet<File>, // Sort files by startIdx
         val diskRepresentation: MutableList<Int?>
     )
 
@@ -26,7 +25,8 @@ fun main() {
         var currentId = 0;
         val line = input[0]
         val disk = mutableListOf<Int?>()
-        val files = sortedMapOf<Int, File>()
+        val comparatorIds: (File, File) -> Int = { o1: File, o2: File -> o1.id - o2.id }
+        val files = TreeSet(comparatorIds)
 
         while ((currentId * 2) in line.indices) {
             val fileBlocks = line[2 * currentId].toString().toInt()
@@ -37,7 +37,7 @@ fun main() {
                 freeBlocks = line[2 * currentId + 1].toString().toInt()
                 repeat(freeBlocks) { disk.add(null) }
             }
-            files[startIdx] = File(currentId, fileBlocks, startIdx, freeBlocks)
+            files.add(File(currentId, fileBlocks, startIdx, freeBlocks))
             currentId++
         }
         return Disk(files, disk)
@@ -71,33 +71,49 @@ fun main() {
     fun part2(input: List<String>): Long {
         val disk = parseDisk(input)
 
-        var toReassignPointerIdx = disk.files.lastKey()
-        var fileWithFreeBlocks = disk.files.filter { it.value.freeBlocks != 0 }.firstNotNullOf { it.value }
+        val filesByNumberOfFreeBlocks = TreeMap<Int, TreeSet<File>>().apply {
+            disk.files
+                .filterNot { it.freeBlocks == 0 }
+                .forEach { file ->
+                    this.computeIfAbsent(file.freeBlocks) { TreeSet({ o1: File, o2: File -> o1.startIdx - o2.startIdx }) }
+                        .add(file)
+                }
+        }
 
-        while (fileWithFreeBlocks.startIdx < toReassignPointerIdx) {
-            val toReassign = disk.files[toReassignPointerIdx]!!
+        var fileToCheck = disk.files.lastOrNull()
 
-            println("Reassigning $toReassign")
-            while (fileWithFreeBlocks.startIdx < toReassign.startIdx) {
-                if (toReassign.numBlocks <= fileWithFreeBlocks.freeBlocks) {
-                    disk.files.remove(toReassign.startIdx)
-                    toReassign.startIdx = fileWithFreeBlocks.startIdx + fileWithFreeBlocks.numBlocks
-                    toReassign.freeBlocks = fileWithFreeBlocks.freeBlocks - toReassign.numBlocks
-                    fileWithFreeBlocks.freeBlocks = 0
-                    disk.files[toReassign.startIdx] = toReassign
-                    break
+        while (fileToCheck != null) {
+            val fileWithEnoughFreeBlocks = filesByNumberOfFreeBlocks
+                .mapNotNull { it.value.firstOrNull() }
+                .filter { it.startIdx < fileToCheck!!.startIdx && it.freeBlocks >= fileToCheck!!.numBlocks }
+                .minByOrNull { it.startIdx }
+            if (fileWithEnoughFreeBlocks != null) {
+                filesByNumberOfFreeBlocks[fileWithEnoughFreeBlocks.freeBlocks]!!.remove(fileWithEnoughFreeBlocks)
+
+                fileToCheck.run {
+                    disk.files.remove(this)
+                    filesByNumberOfFreeBlocks[this.freeBlocks]?.remove(this)
                 }
 
-                fileWithFreeBlocks =
-                    disk.files.tailMap(fileWithFreeBlocks.startIdx + 1).filter { it.value.freeBlocks != 0 }
-                        .firstNotNullOfOrNull { it.value } ?: break
+                val fileToReassign = fileToCheck.copy(
+                    startIdx = fileWithEnoughFreeBlocks.startIdx + fileWithEnoughFreeBlocks.numBlocks,
+                    freeBlocks = fileWithEnoughFreeBlocks.freeBlocks - fileToCheck.numBlocks
+                )
+
+                fileToReassign.run {
+                    disk.files.add(this)
+                    if (this.freeBlocks > 0) {
+                        filesByNumberOfFreeBlocks[this.freeBlocks]!!.add(this)
+                    }
+                }
+
             }
-            toReassignPointerIdx = disk.files.headMap(toReassignPointerIdx).lastKey()
-            fileWithFreeBlocks = disk.files.filter { it.value.freeBlocks != 0 }.firstNotNullOf { it.value }
+
+            fileToCheck = disk.files.lower(fileToCheck)
         }
 
         var checksum = 0L
-        disk.files.forEach { (_, file) ->
+        disk.files.forEach { file ->
             var curIdx = file.startIdx
             repeat(file.numBlocks) { checksum += file.id * curIdx++ }
         }
@@ -105,8 +121,8 @@ fun main() {
         return checksum
     }
 
-    // test if implementation meets criteria from the description, like:
-    // Check test inputs
+// test if implementation meets criteria from the description, like:
+// Check test inputs
     val testInput = """
         2333133121414131402
     """.trimIndent().split("\n")

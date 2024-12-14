@@ -4,6 +4,9 @@ import java.math.BigInteger
 import java.security.MessageDigest
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
+import kotlin.math.abs
+import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 val sessionTokenPath = "/Users/costaj/Documents/aoc-kotlin-notebook/.aocCache/session.txt"
 
@@ -12,6 +15,9 @@ val sessionTokenPath = "/Users/costaj/Documents/aoc-kotlin-notebook/.aocCache/se
  */
 fun readInput2023(name: String) = Path("src/y2023/$name.txt").readLines()
 fun readInput(name: String) = Path("src/$name.txt").readLines()
+
+fun Double.isInt() = abs(this.roundToInt().toDouble() - this) < 0.00001
+fun Double.isLong() = abs(this.roundToLong().toDouble() - this) < 0.001
 
 /**
  * Converts string to md5 hash.

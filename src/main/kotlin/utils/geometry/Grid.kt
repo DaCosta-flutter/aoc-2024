@@ -177,27 +177,42 @@ fun Set<Point>.shortestPath(
     toVisitFromPos: (Point) -> Collection<Pair<Point, Distance>> = { curPos ->
         this.cartesianNeighboursInGrid(curPos).map { it to 1 }
     },
-): Map<Point, Distance> {
-    val minDistanceByPoint = mutableMapOf<Point, Distance>().apply {
-        put(startPos, 0)
+): Map<Point, DistanceWithPreviousNode<Point>> = shortestPath(startPos, targetPos, toVisitFromPos)
+
+data class DistanceWithPreviousNode<T>(
+    val distance: Distance,
+    val previous: Set<T>
+)
+
+fun <T> shortestPath(
+    startPos: T,
+    targetPos: T? = null,
+    toVisitFromPos: (T) -> Collection<Pair<T, Distance>>,
+): Map<T, DistanceWithPreviousNode<T>> {
+    val minDistanceByNode = mutableMapOf<T, DistanceWithPreviousNode<T>>().apply {
+        put(startPos, DistanceWithPreviousNode(0, emptySet()))
     }
-    val toVisit = PriorityQueue<Point>(compareBy { minDistanceByPoint[it] }).apply {
+    val toVisit = PriorityQueue<T>(compareBy { minDistanceByNode[it]?.distance }).apply {
         add(startPos)
     }
 
-    while (toVisit.isNotEmpty() && targetPos !in minDistanceByPoint) {
-        val curPos = toVisit.remove()
-        val curDistance = minDistanceByPoint[curPos]!!
-        toVisitFromPos(curPos)
-            .forEach { (newPos, distanceFromPrevious) ->
+    while (toVisit.isNotEmpty() && targetPos !in minDistanceByNode) {
+        val curNode = toVisit.remove()
+        val (curDistance, _) = minDistanceByNode[curNode]!!
+        toVisitFromPos(curNode)
+            .forEach { (newNode, distanceFromPrevious) ->
                 val newDistance = curDistance + distanceFromPrevious
-                val curDistanceByPoint = minDistanceByPoint[newPos]
-                if (curDistanceByPoint == null || newDistance < curDistanceByPoint) {
-                    minDistanceByPoint[newPos] = newDistance
-                    toVisit.add(newPos)
+                val curDistanceByNode = minDistanceByNode[newNode]
+                if (curDistanceByNode == null || newDistance < curDistanceByNode.distance) {
+                    minDistanceByNode[newNode] = DistanceWithPreviousNode(newDistance, setOf(curNode))
+                    toVisit.add(newNode)
+                } else if (newDistance == curDistanceByNode.distance) {
+                    minDistanceByNode[newNode] =
+                        DistanceWithPreviousNode(newDistance, curDistanceByNode.previous + curNode)
+                    toVisit.add(newNode)
                 }
             }
     }
 
-    return minDistanceByPoint
+    return minDistanceByNode
 }

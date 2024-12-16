@@ -66,15 +66,15 @@ fun main() {
 
     fun part2(input: List<String>, gridSize: Point): Long {
         val robots = parseRobots(input)
-        var currentSec = 0
+        var numSeconds = 0
 
         while (true) {
-            ++currentSec
+            numSeconds++
 
-            val robotPos = robots.map { robot -> robot.posAfter(currentSec, gridSize) }.toSet()
-            val numConnectedPoints = robotPos.sumOf { it.neighbours().count { neigh -> neigh in robotPos } }
-            if (numConnectedPoints > 1000) {
-                return currentSec.toLong()
+            val robotPositions = robots.map { robot -> robot.posAfter(numSeconds, gridSize) }.toSet()
+            val totalNumRobotsWithNeighbours = robotPositions.sumOf { it.neighbours().count { neigh -> neigh in robotPositions } }
+            if (totalNumRobotsWithNeighbours > 1000) {
+                return numSeconds.toLong()
             }
         }
     }

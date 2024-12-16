@@ -59,6 +59,22 @@ enum class Direction {
     UP, UP_LEFT, LEFT, DOWN_LEFT, DOWN, DOWN_RIGHT, RIGHT, UP_RIGHT
 }
 
+fun Direction.rotateCw4() = when (this) {
+    Direction.UP -> Direction.RIGHT
+    Direction.LEFT -> Direction.UP
+    Direction.DOWN -> Direction.LEFT
+    Direction.RIGHT -> Direction.DOWN
+    else -> throw IllegalArgumentException()
+}
+
+fun Direction.rotateCcw4() = when (this) {
+    Direction.UP -> Direction.LEFT
+    Direction.LEFT -> Direction.DOWN
+    Direction.DOWN -> Direction.RIGHT
+    Direction.RIGHT -> Direction.UP
+    else -> throw IllegalArgumentException()
+}
+
 fun Point.moveTo(d: Direction, num: Int = 1) = when (d) {
     Direction.UP -> copy(y = y - num)
     Direction.UP_LEFT -> copy(y = y - num, x = x - num)

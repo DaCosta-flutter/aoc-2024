@@ -3,7 +3,6 @@ package com.toldoven.aoc.notebook.y2024
 import com.toldoven.aoc.notebook.AocClient
 import utils.println
 import utils.sessionTokenPath
-import kotlin.random.Random
 import kotlin.time.measureTime
 
 fun main() {
@@ -89,10 +88,7 @@ fun main() {
         return input.size.toLong()
     }
 
-    val POPULATION_SIZE = 10_000
-    val GENERATIONS = 1000
-
-    fun part2_(input: List<String>): Long {
+    fun part2(input: List<String>): Long {
         val registerA = input[0].split("A: ")[1].toLong()
         val registerB = input[1].split("B: ")[1].toLong()
         val registerC = input[2].split("C: ")[1].toLong()
@@ -131,13 +127,6 @@ fun main() {
         return result
     }
 
-    // Initialize Population with Random Binary Chromosomes
-    fun initializePopulation(popSize: Int): List<Long> {
-        return List(popSize) {
-            Random.nextLong(105_000_000_000_006L, 205_000_000_000_006L)
-        }
-    }
-
     // test if implementation meets criteria from the description, like:
     // Check test inputs
     val testInput = """
@@ -162,6 +151,6 @@ fun main() {
         part1(input).also { println("Part 1: $it") }
     }.also { it.println() }
     measureTime {
-        part2_(input).also { println("Part 2: $it") }
+        part2(input).also { println("Part 2: $it") }
     }.also { it.println() }
 }

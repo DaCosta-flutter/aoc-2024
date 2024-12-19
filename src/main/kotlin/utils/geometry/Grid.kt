@@ -187,7 +187,7 @@ data class DistanceWithPreviousNode<T>(
 fun <T> shortestPath(
     startPos: T,
     targetPos: T? = null,
-    toVisitFromPos: (T) -> Collection<Pair<T, Distance>>,
+    toVisitFromPos: (T, Distance) -> Collection<Pair<T, Distance>>,
 ): Map<T, DistanceWithPreviousNode<T>> {
     val minDistanceByNode = mutableMapOf<T, DistanceWithPreviousNode<T>>().apply {
         put(startPos, DistanceWithPreviousNode(0, emptySet()))
@@ -199,7 +199,7 @@ fun <T> shortestPath(
     while (toVisit.isNotEmpty() && targetPos !in minDistanceByNode) {
         val curNode = toVisit.remove()
         val (curDistance, _) = minDistanceByNode[curNode]!!
-        toVisitFromPos(curNode)
+        toVisitFromPos(curNode, curDistance)
             .forEach { (newNode, distanceFromPrevious) ->
                 val newDistance = curDistance + distanceFromPrevious
                 val curDistanceByNode = minDistanceByNode[newNode]
@@ -209,7 +209,7 @@ fun <T> shortestPath(
                 } else if (newDistance == curDistanceByNode.distance) {
                     minDistanceByNode[newNode] =
                         DistanceWithPreviousNode(newDistance, curDistanceByNode.previous + curNode)
-                    toVisit.add(newNode)
+                    //toVisit.add(newNode)
                 }
             }
     }

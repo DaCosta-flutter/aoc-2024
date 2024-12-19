@@ -18,7 +18,7 @@ fun main() {
         val grid = input.toGrid()
 
         val start = grid.values().filter { it.value == 'S' }.first().key
-        val result = shortestPath(PointWithDirection(start, Direction.RIGHT)) { pd ->
+        val result = shortestPath(PointWithDirection(start, Direction.RIGHT)) { pd, _ ->
             val (curPoint, curDirection) = pd
             val currentDirMove =
                 curPoint.moveTo(curDirection).takeIf { grid[pd.point] != '#' }
@@ -45,7 +45,7 @@ fun main() {
 
         val start = grid.values().filter { it.value == 'S' }.first().key
         val target = grid.values().filter { it.value == 'E' }.first().key
-        val result = shortestPath(PointWithDirection(start, Direction.RIGHT)) { (curPoint, curDirection) ->
+        val result = shortestPath(PointWithDirection(start, Direction.RIGHT)) { (curPoint, curDirection), _ ->
             val currentDirMove =
                 curPoint.moveTo(curDirection).takeIf { grid[it] != '#' }
                     ?.run { PointWithDirection(this, curDirection) to 1 }

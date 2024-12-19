@@ -1,5 +1,6 @@
-package com.toldoven.aoc.notebook
+package com.toldoven.aoc.notebook.y2024
 
+import com.toldoven.aoc.notebook.AocClient
 import utils.geometry.GridMap
 import utils.geometry.Point
 import utils.geometry.neighbours

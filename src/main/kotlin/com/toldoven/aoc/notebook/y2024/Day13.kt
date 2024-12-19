@@ -1,5 +1,6 @@
-package com.toldoven.aoc.notebook
+package com.toldoven.aoc.notebook.y2024
 
+import com.toldoven.aoc.notebook.AocClient
 import org.apache.commons.math3.linear.Array2DRowRealMatrix
 import org.apache.commons.math3.linear.ArrayRealVector
 import org.apache.commons.math3.linear.DecompositionSolver

@@ -1,6 +1,6 @@
-package com.toldoven.aoc.notebook
+package com.toldoven.aoc.notebook.y2024
 
-import utils.geometry.*
+import com.toldoven.aoc.notebook.AocClient
 import utils.println
 import utils.sessionTokenPath
 import kotlin.time.measureTime

@@ -169,6 +169,27 @@ fun Set<Point>.bfs(
     return visited.toList()
 }
 
+fun Set<Point>.allPaths(
+    startPoint: Point,
+    inclusionCriteria: (cur: Point, new: Point) -> Boolean = { _, _ -> true },
+    toVisitFromPos: (Point) -> Collection<Point> = { curPos -> this.cartesianNeighboursInGrid(curPos) }
+): List<Point> {
+    val toVisit = LinkedList<Point>().apply { add(startPoint) }
+    val visited = mutableSetOf<Point>()
+
+    while (toVisit.isNotEmpty()) {
+        val curPos = toVisit.pop()
+        visited.add(curPos)
+        toVisitFromPos(curPos)
+            .filter { it !in visited }
+            .filter { inclusionCriteria(curPos, it) }
+            .forEach {
+                toVisit.add(it)
+            }
+    }
+    return visited.toList()
+}
+
 typealias Distance = Int
 
 fun Set<Point>.shortestPath(

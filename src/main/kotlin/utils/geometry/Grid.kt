@@ -148,20 +148,20 @@ fun List<String>.toGrid(): GridList = GridList(this)
 
 fun Set<Point>.cartesianNeighboursInGrid(pos: Point) = pos.cardinalNeighbours().filter { it in this }.toSet()
 
-fun Set<Point>.bfs(
-    startPoint: Point,
-    inclusionCriteria: (cur: Point, new: Point) -> Boolean = { _, _ -> true },
-    toVisitFromPos: (Point) -> Collection<Point> = { curPos -> this.cartesianNeighboursInGrid(curPos) }
-): List<Point> {
-    val toVisit = LinkedList<Point>().apply { add(startPoint) }
-    val visited = mutableSetOf<Point>()
+fun <T> Set<T>.bfs(
+    startNode: T,
+    inclusionCriteria: (cur: T, new: T) -> Boolean = { _, _ -> true },
+    toVisitFrom: (T) -> Collection<T>,
+): List<T> {
+    val toVisit = LinkedList<T>().apply { add(startNode) }
+    val visited = mutableSetOf<T>()
 
     while (toVisit.isNotEmpty()) {
-        val curPos = toVisit.pop()
-        visited.add(curPos)
-        toVisitFromPos(curPos)
+        val curNode = toVisit.pop()
+        visited.add(curNode)
+        toVisitFrom(curNode)
             .filter { it !in visited }
-            .filter { inclusionCriteria(curPos, it) }
+            .filter { inclusionCriteria(curNode, it) }
             .forEach {
                 toVisit.add(it)
             }
